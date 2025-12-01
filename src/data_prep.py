@@ -1,12 +1,52 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Literal
+from typing import Literal, List
 from pathlib import Path
 
 FIGURES_PATH = Path.cwd().parent / "reports" / "figures"
 FIGURES_PATH.mkdir(parents=True, exist_ok=True)
 
+class DataExplorer:
+    def __init__(self) -> None:
+        """
+        Loads multiple datasets related to home credit default risk into pandas DataFrames.
+        The datasets are stored as attributes of the class instance.
+        """
+
+        self.application_test = pd.read_csv("../home-credit-default-risk/application_test.csv")
+        self.application_train = pd.read_csv("../home-credit-default-risk/application_train.csv")
+        self.bureau = pd.read_csv("../home-credit-default-risk/bureau.csv")
+        self.bureau_balance = pd.read_csv("../home-credit-default-risk/bureau_balance.csv")
+        self.credit_card_balance = pd.read_csv("../home-credit-default-risk/credit_card_balance.csv")
+        self.installments_payments = pd.read_csv("../home-credit-default-risk/installments_payments.csv")
+        self.POS_CASH_balance = pd.read_csv("../home-credit-default-risk/POS_CASH_balance.csv")
+        self.previous_application = pd.read_csv("../home-credit-default-risk/previous_application.csv")
+
+        self.datasets: List[str] = [
+            "application_test",
+            "application_train",
+            "bureau",
+            "bureau_balance",
+            "credit_card_balance",
+            "installments_payments",
+            "POS_CASH_balance",
+            "previous_application"
+        ]
+
+    def __iter__(self):
+        for dataset in self.datasets:
+            yield getattr(self, dataset)
+
+    def __getitem__(self, item):
+        return getattr(self, self.datasets[item])
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def items(self):
+        for dataset in self.datasets:
+            yield dataset, getattr(self, dataset)
 
 def drop_cols_above_threshold(df: pd.DataFrame, threshold=0.9, verbose=0) -> pd.DataFrame:
     """
@@ -29,8 +69,22 @@ def drop_cols_above_threshold(df: pd.DataFrame, threshold=0.9, verbose=0) -> pd.
         print(f"Dropped columns: {list(cols_to_drop)}")
     return df_dropped
 
+def null_cols_above_threshold(df: pd.DataFrame, threshold=0.7) -> None:
+    """
+    Prints the names of columns in the DataFrame that have a percentage of missing values above the specified threshold.
 
-def join_dfs_on_key(dfs: list[pd.DataFrame], key: str,
+    Parameters:
+    df (pd.DataFrame): The input DataFrame.
+    threshold (float): The threshold for identifying columns (between 0 and 1).
+    """
+
+    for col in df.columns:
+        missing_percentage = df[col].isna().mean()
+        if missing_percentage > threshold:
+            print(f"  {col}: {missing_percentage:.2f}% missing")
+
+
+def join_dfs_on_key(left: pd.DataFrame, right: pd.DataFrame, key: str,
                     how: Literal["left", "right", "inner", "outer", "cross"] = 'inner', **kwargs) -> pd.DataFrame:
     """
     Joins multiple DataFrames on a specified key using the specified join method.
@@ -44,41 +98,11 @@ def join_dfs_on_key(dfs: list[pd.DataFrame], key: str,
     Returns:
     pd.DataFrame: The joined DataFrame.
     """
-    if not dfs:
-        raise ValueError("The list of DataFrames is empty.")
+    if left.empty or right.empty:
+        raise ValueError("Input DataFrames must not be empty.")
 
-    joined_df = dfs[0]
-    for df in dfs[1:]:
-        joined_df = joined_df.merge(df, on=key, how=how, **kwargs)
-
+    joined_df = left.merge(right, on=key, how=how, **kwargs)
     return joined_df
-
-
-def null_value_chart1(df: pd.DataFrame) -> None:
-    """
-    Plots a heatmap showing the locations of missing values in the DataFrame.
-    Parameters:
-    df (pd.DataFrame): The input DataFrame.
-    """
-
-    name = df.__class__.__name__
-
-    if (FIGURES_PATH / f"{name}_null_value_chart.png").exists():
-        img = plt.imread(FIGURES_PATH / f"{name}_null_value_chart.png")
-        plt.figure(figsize=(20, 9))
-        plt.imshow(img)
-        plt.axis('off')
-        plt.show()
-        return
-
-    if sum(df.isna().sum()) > 0:
-        plt.figure(figsize=(20, 9))
-        sns.heatmap(df.isna(), cbar=False, yticklabels=False, cmap="Oranges")
-        plt.title(f"Missing values in {name} dataset")
-        plt.savefig(FIGURES_PATH / f"{name}_null_value_chart.png")
-        plt.show()
-    else:
-        print(f"There are no missing values in the {name} dataset")
 
 
 def null_value_chart(df: pd.DataFrame, name: str = "dataset", subdir: str = "", save: bool = True) -> None:
