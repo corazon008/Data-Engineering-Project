@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Literal, List
 from pathlib import Path
+import numpy as np
 
 FIGURES_PATH = Path.cwd().parent / "reports" / "figures"
 FIGURES_PATH.mkdir(parents=True, exist_ok=True)
@@ -15,13 +16,21 @@ class DataExplorer:
         """
 
         self.application_test = pd.read_csv("../home-credit-default-risk/application_test.csv")
+        self.application_test = reduce_mem_usage(self.application_test)
         self.application_train = pd.read_csv("../home-credit-default-risk/application_train.csv")
+        self.application_train = reduce_mem_usage(self.application_train)
         self.bureau = pd.read_csv("../home-credit-default-risk/bureau.csv")
+        self.bureau = reduce_mem_usage(self.bureau)
         self.bureau_balance = pd.read_csv("../home-credit-default-risk/bureau_balance.csv")
+        self.bureau_balance = reduce_mem_usage(self.bureau_balance)
         self.credit_card_balance = pd.read_csv("../home-credit-default-risk/credit_card_balance.csv")
+        self.credit_card_balance = reduce_mem_usage(self.credit_card_balance)
         self.installments_payments = pd.read_csv("../home-credit-default-risk/installments_payments.csv")
+        self.installments_payments = reduce_mem_usage(self.installments_payments)
         self.POS_CASH_balance = pd.read_csv("../home-credit-default-risk/POS_CASH_balance.csv")
+        self.POS_CASH_balance = reduce_mem_usage(self.POS_CASH_balance)
         self.previous_application = pd.read_csv("../home-credit-default-risk/previous_application.csv")
+        self.previous_application = reduce_mem_usage(self.previous_application)
 
         self.datasets: List[str] = [
             "application_test",
@@ -135,3 +144,47 @@ def null_value_chart(df: pd.DataFrame, name: str = "dataset", subdir: str = "", 
         plt.show()
     else:
         print(f"There are no missing values in the {name}")
+
+def reduce_mem_usage(df):
+    """
+    Itère sur toutes les colonnes d'un DataFrame et réduit la précision
+    des types numériques (int et float) pour diminuer la consommation de mémoire.
+    """
+    start_mem = df.memory_usage().sum() / 1024**2
+    print(f"Usage mémoire initial du DataFrame: {start_mem:.2f} MB")
+
+    for col in df.columns:
+        col_type = df[col].dtype
+
+        # Traiter uniquement les colonnes numériques
+        if col_type != object and col_type != str and col_type != bool:
+            c_min = df[col].min()
+            c_max = df[col].max()
+
+            # --- Conversion des entiers (Integers) ---
+            if str(col_type)[:3] == 'int':
+                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
+                    df[col] = df[col].astype(np.int8)
+                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                    df[col] = df[col].astype(np.int16)
+                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                    df[col] = df[col].astype(np.int32)
+                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
+                    df[col] = df[col].astype(np.int64)
+
+            # --- Conversion des décimaux (Floats) ---
+            else:
+                # La majorité de vos colonnes d'agrégats (mean, var, proportions) sont ici
+                if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
+                    df[col] = df[col].astype(np.float16)
+                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                    # Conversion principale : float64 -> float32
+                    df[col] = df[col].astype(np.float32)
+                else:
+                    df[col] = df[col].astype(np.float64) # Garder float64 si la précision est nécessaire
+
+    end_mem = df.memory_usage().sum() / 1024**2
+    print(f"Usage mémoire final du DataFrame: {end_mem:.2f} MB")
+    print(f"Mémoire réduite de {(start_mem - end_mem) / start_mem * 100:.1f} %")
+
+    return df
