@@ -8,6 +8,7 @@ import numpy as np
 FIGURES_PATH = Path.cwd().parent / "reports" / "figures"
 FIGURES_PATH.mkdir(parents=True, exist_ok=True)
 
+
 class DataExplorer:
     def __init__(self) -> None:
         """
@@ -46,7 +47,7 @@ class DataExplorer:
         for dataset in self:
             dataset.drop_duplicates()
 
-    def __iter__(self)-> Generator[pd.DataFrame]:
+    def __iter__(self) -> Generator[pd.DataFrame]:
         """
 
         Returns:
@@ -72,6 +73,7 @@ class DataExplorer:
         for dataset in self.datasets:
             yield dataset, getattr(self, dataset)
 
+
 def drop_cols_above_threshold(df: pd.DataFrame, threshold=0.9, verbose=0) -> pd.DataFrame:
     """
     Drops columns from the DataFrame that have a percentage of missing values above the specified threshold.
@@ -92,6 +94,7 @@ def drop_cols_above_threshold(df: pd.DataFrame, threshold=0.9, verbose=0) -> pd.
     if verbose > 0:
         print(f"Dropped columns: {list(cols_to_drop)}")
     return df_dropped
+
 
 def null_cols_above_threshold(df: pd.DataFrame, threshold=0.7) -> None:
     """
@@ -160,12 +163,13 @@ def null_value_chart(df: pd.DataFrame, name: str = "dataset", subdir: str = "", 
     else:
         print(f"There are no missing values in the {name}")
 
+
 def reduce_mem_usage(df):
     """
     Itère sur toutes les colonnes d'un DataFrame et réduit la précision
     des types numériques (int et float) pour diminuer la consommation de mémoire.
     """
-    start_mem = df.memory_usage().sum() / 1024**2
+    start_mem = df.memory_usage().sum() / 1024 ** 2
     print(f"Usage mémoire initial du DataFrame: {start_mem:.2f} MB")
 
     for col in df.columns:
@@ -196,10 +200,50 @@ def reduce_mem_usage(df):
                     # Conversion principale : float64 -> float32
                     df[col] = df[col].astype(np.float32)
                 else:
-                    df[col] = df[col].astype(np.float64) # Garder float64 si la précision est nécessaire
+                    df[col] = df[col].astype(np.float64)  # Garder float64 si la précision est nécessaire
 
-    end_mem = df.memory_usage().sum() / 1024**2
+    end_mem = df.memory_usage().sum() / 1024 ** 2
     print(f"Usage mémoire final du DataFrame: {end_mem:.2f} MB")
     print(f"Mémoire réduite de {(start_mem - end_mem) / start_mem * 100:.1f} %")
 
     return df
+
+
+def encode_df(df: pd.DataFrame, nominal: List[str], ordinal: List[str], df_test: pd.DataFrame | None = None) -> tuple[
+    pd.DataFrame, pd.DataFrame | None]:
+    """
+    Encodes nominal and ordinal categorical variables in the DataFrame.
+
+    Parameters:
+    df (pd.DataFrame): The input DataFrame.
+    nominal (List[str]): List of nominal variable column names.
+    ordinal (List[str]): List of ordinal variable column names.
+
+    Returns:
+    pd.DataFrame: The encoded DataFrame.
+    """
+    from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+
+    # One-hot encoding for nominal variables
+    for col in nominal:
+        ohe = OneHotEncoder()
+        ohe_df = pd.DataFrame(ohe.fit_transform(df[[col]]).toarray(),
+                              columns=[f"{col}_{cat}" for cat in ohe.categories_[0]],
+                              index=df.index)
+        df = pd.concat([df, ohe_df], axis=1)
+        df.drop(columns=[col], inplace=True)
+        if df_test is not None:
+            ohe_df_test = pd.DataFrame(ohe.transform(df_test[[col]]).toarray(),
+                                       columns=[f"{col}_{cat}" for cat in ohe.categories_[0]],
+                                       index=df_test.index)
+            df_test = pd.concat([df_test, ohe_df_test], axis=1)
+            df_test.drop(columns=[col], inplace=True)
+
+    # Label encoding for ordinal variables
+    for col in ordinal:
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col])
+        if df_test is not None:
+            df_test[col] = le.transform(df_test[col])
+
+    return df, df_test
