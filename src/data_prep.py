@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Literal, List
+from typing import Literal, List, Generator
 from pathlib import Path
 import numpy as np
 
@@ -43,7 +43,16 @@ class DataExplorer:
             "previous_application"
         ]
 
-    def __iter__(self):
+        for dataset in self:
+            dataset.drop_duplicates()
+
+    def __iter__(self)-> Generator[pd.DataFrame]:
+        """
+
+        Returns:
+        Generator that yields each dataset DataFrame.
+
+        """
         for dataset in self.datasets:
             yield getattr(self, dataset)
 
@@ -54,6 +63,12 @@ class DataExplorer:
         setattr(self, key, value)
 
     def items(self):
+        """
+
+        Returns:
+        Generator that yields tuples of dataset names and their corresponding DataFrames.
+
+        """
         for dataset in self.datasets:
             yield dataset, getattr(self, dataset)
 

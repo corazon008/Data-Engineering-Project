@@ -12,7 +12,7 @@
 - [ ] Créer de nouvelles features à partir des variables existantes si nécessaire.
 - [ ] Éviter de supprimer trop rapidement les colonnes avec des valeurs manquantes : explorer les possibilités d’imputation.
 
-- [ ] Ne pas oublier de vérifier les doublons.
+- [X] Ne pas oublier de vérifier les doublons.
 - [ ] Ne pas supprimer des colonnes sans analyser leur importance métier.
 - [ ] Documenter et justifier toute imputation.
 - [ ] Gérer les duplications ou pertes de lignes lors des fusions.
