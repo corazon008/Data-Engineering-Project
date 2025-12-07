@@ -209,7 +209,8 @@ def reduce_mem_usage(df):
     return df
 
 
-def encode_df(df: pd.DataFrame, nominal: List[str], ordinal: List[str], df_test: pd.DataFrame | None = None) -> tuple[
+def encode_df(df: pd.DataFrame, nominal: List[str] = [], ordinal: List[str] = [],
+              df_test: pd.DataFrame | None = None) -> tuple[
     pd.DataFrame, pd.DataFrame | None]:
     """
     Encodes nominal and ordinal categorical variables in the DataFrame.

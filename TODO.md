@@ -17,3 +17,5 @@
 - [ ] Documenter et justifier toute imputation.
 - [ ] Gérer les duplications ou pertes de lignes lors des fusions.
 - [ ] Tenir compte du type de modèle prévu (ordinal vs nominal) lors de l’encodage.
+
+- [ ] Faire une fonction a la main pour le niveau d'étude pour le label encoding
