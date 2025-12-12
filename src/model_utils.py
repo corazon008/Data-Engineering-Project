@@ -9,7 +9,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.base import BaseEstimator
-from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix, roc_auc_score
 from mlFlow.MLflowTracker import MLflowTracker
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -36,6 +36,8 @@ def run_training_with_mlflow(grid, pipeline,
         metrics = {
             "train_accuracy": accuracy_score(y_train, best_model.predict(X_train)),
             "test_accuracy": accuracy_score(y_test, y_pred),
+            "train_AUC": roc_auc_score(y_train, best_model.predict(X_train)),
+            "test_AUC": roc_auc_score(y_test, y_pred),
             "train_f1": f1_score(y_train, best_model.predict(X_train)),
             "test_f1": f1_score(y_test, y_pred),
             #"test_classification_report": classification_report(y_test, y_pred, output_dict=True)
@@ -76,7 +78,7 @@ def run_training_with_mlflow(grid, pipeline,
 
         return best_model, metrics
     except Exception as e:
-        print("Erreur durant le training avec MLflow:", e)
+        raise e
         return None, None
     finally:
         tracker.end_run()
@@ -87,9 +89,20 @@ def get_pipeline(model: BaseEstimator, numeric_features, categorical_features) -
     Construit et retourne un pipeline scikit-learn avec préprocessing.
     """
 
-    transformers = [("num", SimpleImputer(strategy="mean"), StandardScaler(), numeric_features),
-        ("cat", SimpleImputer(strategy="most_frequent"), OneHotEncoder(handle_unknown="ignore"), categorical_features)]
+    numeric_transformer = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="mean")),
+        ("scaler", StandardScaler())
+    ])
 
-    preprocessor = ColumnTransformer(transformers)
+    categorical_transformer = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("onehot", OneHotEncoder(handle_unknown="ignore"))
+    ])
+
+    preprocessor = ColumnTransformer(transformers=[
+        ("num", numeric_transformer, numeric_features),
+        ("cat", categorical_transformer, categorical_features)
+    ])
+
     pipeline = Pipeline(steps=[("preprocessing", preprocessor), ("model", model)])
     return pipeline
