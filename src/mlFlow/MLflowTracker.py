@@ -63,7 +63,7 @@ class MLflowTracker:
         """
         Enregistre le modèle du run dans le Model Registry
         """
-        model_uri = f"runs:../{run_id}/{artifact_path}"
+        model_uri = f"runs:/{run_id}/{artifact_path}"
         print(f"[MLflow] Enregistrement du modèle : {model_uri}")
 
         registered = mlflow.register_model(model_uri=model_uri, name=model_name)

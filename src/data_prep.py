@@ -108,7 +108,7 @@ def null_cols_above_threshold(df: pd.DataFrame, threshold=0.7) -> None:
     for col in df.columns:
         missing_percentage = df[col].isna().mean()
         if missing_percentage > threshold:
-            print(f"  {col}: {missing_percentage:.2f}% missing")
+            print(f"  {col}: {missing_percentage*100:.2f}% missing")
 
 
 def join_dfs_on_key(left: pd.DataFrame, right: pd.DataFrame, key: str,
