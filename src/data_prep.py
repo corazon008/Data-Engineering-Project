@@ -248,3 +248,55 @@ def encode_df(df: pd.DataFrame, nominal: List[str] = [], ordinal: List[str] = []
             df_test[col] = le.transform(df_test[col])
 
     return df, df_test
+
+
+def group_rare_categories(df, threshold=0.01, category_name="OTHER", nan_replacement="XNA"):
+    """
+    Remplace les NaN par une valeur spécifique (nan_replacement).
+    Regroupe les catégories de features 'object' ou 'category' dont la fréquence
+    est inférieure au seuil spécifié (threshold) dans une unique catégorie 'OTHER'.
+
+    Args:
+        df (pd.DataFrame): Le DataFrame à transformer.
+        threshold (float): Le seuil de fréquence (e.g., 0.01 pour 1%).
+        category_name (str): Le nom à donner à la nouvelle catégorie regroupée.
+        nan_replacement (str): La chaîne de caractères pour remplacer les NaN (e.g., 'XNA').
+
+    Returns:
+        pd.DataFrame: Le DataFrame modifié.
+    """
+    # Créer une copie pour travailler sans modifier le DataFrame original
+    df_transformed = df.copy()
+
+    # Identifier les colonnes de type catégoriel ou chaîne de caractères
+    categorical_cols = df_transformed.select_dtypes(include=['object', 'category']).columns
+
+    if categorical_cols.empty:
+        print("Aucune colonne de type 'object' ou 'category' trouvée. Aucune modification effectuée.")
+        return df_transformed
+
+    for col in categorical_cols:
+        df_transformed[col] = df_transformed[col].fillna(nan_replacement)
+
+    for col in categorical_cols:
+        # Calculer les fréquences normalisées (proportions), y compris les valeurs NaN
+        frequencies = df_transformed[col].value_counts(normalize=True, dropna=False)
+        print(f'Fréquences pour la colonne "{col}":\n{frequencies}\n')
+
+        # Identifier les catégories rares (celles sous le seuil)
+        rare_categories = frequencies[frequencies < threshold].index.tolist()
+
+        # Ajouter "other" et "Other" à la liste des catégories rares si elles existent
+        unique_vals = df_transformed[col].unique()
+        for e in ['Other', 'other', 'OTHER']:
+            if e in unique_vals and e not in rare_categories:
+                rare_categories.append(e)
+        print(f'Catégories rares pour la colonne "{col}": {rare_categories}\n')
+
+        if rare_categories:
+            # Remplacer les catégories rares par le nom 'OTHER'
+            df_transformed[col] = df_transformed[col].replace(rare_categories, category_name)
+
+
+
+    return df_transformed
