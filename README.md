@@ -10,3 +10,9 @@ uv pip install -e .
 ```commandline
 uv run mlflow server --port 8080 --backend-store-uri sqlite:///mlruns/mlflow.db
 ```
+
+
+## Run the server
+```commandline
+docker compose up -d
+```

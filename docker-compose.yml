@@ -1,0 +1,18 @@
+services:
+  dea:
+    build: .
+    environment:
+      # exemple : URL de Selenium accessible depuis Python
+      SELENIUM_URL: http://standalone-firefox:4444/wd/hub
+    ports:
+      - 5000:5000  # exposer le port de ton API si besoin
+    volumes:
+      - ./:/app
+    #command: ["uv", "run", "main"]  # ou ton CMD par défaut dans Dockerfile
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
