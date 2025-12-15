@@ -106,3 +106,16 @@ def get_pipeline(model: BaseEstimator, numeric_features, categorical_features) -
 
     pipeline = Pipeline(steps=[("preprocessing", preprocessor), ("model", model)])
     return pipeline
+
+def get_gridsearch(model: BaseEstimator, param_grid: dict, cv: int = 5):
+    from sklearn.model_selection import GridSearchCV
+
+    grid_search = GridSearchCV(
+        estimator=model,
+        param_grid=param_grid,
+        scoring="f1",
+        n_jobs=-1,
+        cv=cv,
+        verbose=2,
+    )
+    return grid_search
