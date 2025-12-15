@@ -30,6 +30,11 @@ uv run mlflow server --port 8080 --backend-store-uri sqlite:///mlruns/mlflow.db
 docker compose up -d
 ```
 
+## Run the tests
+```commandline
+uv run pytest
+```
+
 ## Seuil métier
 Pour répondre à la contrainte d'asymétrie des coûts, le seuil de décision n'est pas fixé arbitrairement à 0.5. Il est déterminé par l'optimisation de la fonction de coût suivante :
 $$\text{Coût} = 10 \times \text{FN} + 1 \times \text{FP}$$
@@ -59,6 +64,15 @@ Si la probabilité de défaut est ≥ Seuil : Crédit Refusé (Client à risque)
 ├── model
 │   ├── application_test_enriched.csv
 │   ├── application_train_enriched.csv
+│   ├── models
+│   │   ├── m-076fa8276332481f8e2beafaaa2f988d
+│   │   │   └── artifacts
+│   │   │       ├── conda.yaml
+│   │   │       ├── MLmodel
+│   │   │       ├── model.pkl
+│   │   │       ├── python_env.yaml
+│   │   │       └── requirements.txt
+...
 │   └── submission.csv
 ├── notebooks
 │   ├── 01_data_preparation.ipynb
@@ -68,23 +82,24 @@ Si la probabilité de défaut est ≥ Seuil : Crédit Refusé (Client à risque)
 ├── pyproject.toml
 ├── README.md
 ├── reports
-│   └── figures
-│       ├── postprocessing
-│       │   ├── application_test_null_value_chart.png
-│       │   ├── application_train_null_value_chart.png
-│       │   ├── bureau_null_value_chart.png
-│       │   ├── credit_card_balance_null_value_chart.png
-│       │   ├── installments_payments_null_value_chart.png
-│       │   ├── POS_CASH_balance_null_value_chart.png
-│       │   └── previous_application_null_value_chart.png
-│       └── preprocessing
-│           ├── application_test_null_value_chart.png
-│           ├── application_train_null_value_chart.png
-│           ├── bureau_null_value_chart.png
-│           ├── credit_card_balance_null_value_chart.png
-│           ├── installments_payments_null_value_chart.png
-│           ├── POS_CASH_balance_null_value_chart.png
-│           └── previous_application_null_value_chart.png
+│   ├── figures
+│   │   ├── postprocessing
+│   │   │   ├── application_test_null_value_chart.png
+│   │   │   ├── application_train_null_value_chart.png
+│   │   │   ├── bureau_null_value_chart.png
+│   │   │   ├── credit_card_balance_null_value_chart.png
+│   │   │   ├── installments_payments_null_value_chart.png
+│   │   │   ├── POS_CASH_balance_null_value_chart.png
+│   │   │   └── previous_application_null_value_chart.png
+│   │   └── preprocessing
+│   │       ├── application_test_null_value_chart.png
+│   │       ├── application_train_null_value_chart.png
+│   │       ├── bureau_null_value_chart.png
+│   │       ├── credit_card_balance_null_value_chart.png
+│   │       ├── installments_payments_null_value_chart.png
+│   │       ├── POS_CASH_balance_null_value_chart.png
+│   │       └── previous_application_null_value_chart.png
+│   └── rapport data.pdf
 ├── src
 │   ├── data_prep.py
 │   ├── explainability.py
