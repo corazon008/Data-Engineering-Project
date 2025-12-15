@@ -93,7 +93,6 @@ Si la probabilité de défaut est ≥ Seuil : Crédit Refusé (Client à risque)
 │   │   ├── MLflowTracker.py
 │   ├── model_utils.py
 │   └── server.py
-├── Tasks.md
 ├── tests
 │   ├── test_api.py
 └── uv.lock
